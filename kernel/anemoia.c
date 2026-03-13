@@ -1,5 +1,5 @@
-// PanacheOS/kernel/anemoia.c
-// THE PANACHEOS KERNEL
+// panache/kernel/anemoia.c
+// ----- THE PANACHEOS KERNEL -----
 
 #include <vga.h>
 

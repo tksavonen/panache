@@ -1,4 +1,4 @@
-// PanacheOS/include/gdt.h
+// panache/include/gdt.h
 
 #ifndef GDT_H
 #define GDT_H

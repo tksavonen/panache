@@ -1,4 +1,4 @@
-// PanacheOS/include/vga.h
+// panache/include/vga.h
 
 #ifndef VGA_H
 #define VGA_H

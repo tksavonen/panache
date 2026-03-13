@@ -1,4 +1,4 @@
-// PanacheOS/drivers/vga/vga.c
+// panache/drivers/vga/vga.c
 
 #include "vga.h"
 

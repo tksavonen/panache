@@ -1,4 +1,4 @@
-; PanacheOS/boot/boot.asm
+; panache/boot/boot.asm
 
 extern __bss_start
 extern __bss_end
