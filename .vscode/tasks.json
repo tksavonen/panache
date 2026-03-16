@@ -1,0 +1,24 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build PanacheOS",
+      "type": "shell",
+      "command": "make",
+      "group": "build",
+      "problemMatcher": "$gcc"
+    },
+    {
+      "label": "Clean PanacheOS directory",
+      "type": "shell",
+      "command": "make clean",
+      "group": "test"
+    },
+    {
+      "label": "Run PanacheOS",
+      "type": "shell",
+      "command": "make run",
+      "group": "test"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+    "configurations": [
+        {
+            "name": "PanacheOS",
+            "compilerPath": "/usr/bin/gcc",
+            "includePath": [
+                "${workspaceFolder}",
+                "${workspaceFolder}/kernel",
+                "${workspaceFolder}/drivers",
+                "${workspaceFolder}/arch",
+                "${workspaceFolder}/include"
+            ],
+            "compilerArgs": [
+                "-ffreestanding",
+                "-m32"
+            ],
+            "cStandard": "gnu11",
+            "intelliSenseMode": "linux-gcc-x86"
+        }
+    ],
+    "version": 4
+}

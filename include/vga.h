@@ -25,7 +25,7 @@
 #define SCREEN_WIDTH			80
 #define SCREEN_HEIGHT			25
 
-void k_print(const char* s);
+void k_print(const char* s, ...);
 void k_scroll_up();
 void k_new_line();
 void k_reset();

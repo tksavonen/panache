@@ -3,16 +3,16 @@
 CC := i686-elf-gcc
 AS := nasm
 
-SRC_DIRS := kernel drivers
+SRC_DIRS := kernel drivers arch/i386
 BUILD_DIR := build
 ISO_DIR := iso
 
-CFLAGS := -ffreestanding -O2 -Wall -Wextra -Ikernel -Idrivers -Iinclude
+CFLAGS := -ffreestanding -O2 -Wall -Wextra -Ikernel -Idrivers -Iarch -Iinclude
 CFLAGS += -std=gnu99
 LDFLAGS := -T linker.ld -ffreestanding -O2 -nostdlib
 
 C_SRCS := $(shell find $(SRC_DIRS) -name "*.c")
-ASM_SRCS := boot/boot.asm
+ASM_SRCS := $(shell find boot $(SRC_DIRS) -name "*.asm")
 
 OBJS := $(patsubst %.c,$(BUILD_DIR)/%.o,$(C_SRCS)) \
         $(patsubst %.asm,$(BUILD_DIR)/%.o,$(ASM_SRCS))

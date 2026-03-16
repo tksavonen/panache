@@ -1,6 +1,8 @@
 // panache/drivers/vga/vga.c
 
-#include "vga.h"
+#include <vga.h>
+#include <util.h>
+#include <stdarg.h>
 
 static uint16_t column = 0;
 static uint16_t line = 0;
@@ -49,34 +51,60 @@ void k_scroll_up() {
 	}
 }
 
-void k_print(const char* s) {
-	while (*s) {
-		switch (*s) {
-			case '\n':
-				k_new_line();
-				break;
-			case '\r':
-				column = 0;
-				break;
-			case '\t':
-				if (column == SCREEN_WIDTH) {
-					k_new_line();
-				}
-					uint16_t tablen = 4 - (column % 4);
-					while (tablen != 0) {
-						vga[line * SCREEN_WIDTH + (column++)] = ' ' | current_color;
-						tablen--;
-					}
-					break;
-			default:
-				if (column == SCREEN_WIDTH) {
-					k_new_line();
-				}
-				vga[line * SCREEN_WIDTH + (column++)] = *s | current_color;
-				break;
-		}
-		s++;
-	}
+void k_print(const char* s, ...) {
+    __gnuc_va_list args;
+    va_start(args, s);
+
+    while (*s) {
+        if (*s == '%') {
+            s++;
+
+            if (*s == 'd') {
+                int val = va_arg(args, int);
+                char buf[32];
+                k_itoa(val, buf);
+                k_print(buf);   
+            }
+            else if (*s == 'u') {
+                unsigned val = va_arg(args, unsigned);
+                char buf[32];
+                k_itoa((int)val, buf);
+                k_print(buf);
+            }
+            else if (*s == 'c') {
+                char c = (char)va_arg(args, int);
+                char str[2] = {c, 0};
+                k_print(str);
+            }
+            else if (*s == 's') {
+                char* str = va_arg(args, char*);
+                k_print(str);
+            }
+            else {
+                vga[line * SCREEN_WIDTH + (column++)] = *s | current_color;
+            }
+        }
+        else {
+            switch (*s) {
+                case '\n': k_new_line(); break;
+                case '\r': column = 0; break;
+                case '\t': {
+                    uint16_t tablen = 4 - (column % 4);
+                    while (tablen--) {
+                        vga[line * SCREEN_WIDTH + (column++)] = ' ' | current_color;
+                    }
+                } break;
+                default:
+                    if (column == SCREEN_WIDTH) k_new_line();
+                    vga[line * SCREEN_WIDTH + (column++)] = *s | current_color;
+                    break;
+            }
+        }
+
+        s++;
+    }
+
+    va_end(args);
 }
 
 void k_set_color(uint8_t fg, uint8_t bg) {
