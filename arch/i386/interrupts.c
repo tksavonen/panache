@@ -1,5 +1,6 @@
 // panache/arch/i386/interrupts.c
 
+#include <anemoia.h>
 #include <interrupts.h>
 #include <util.h>
 #include <vga.h>
@@ -107,14 +108,38 @@ const char *exception_msgs[] = {
 
 void isr_handler(struct interrupt_registers* regs) {
     if (regs->int_no < 32) {
-        k_print(exception_msgs[regs->int_no]);
-        k_new_line();
-        k_print("Exception! System has halted.");
-        k_new_line();
-        for (;;);
-    }
+    k_set_color(COLOR_RED, COLOR_BLACK);
 
-    else if (regs->int_no >= 32 && regs->int_no < 48) {
+    k_print("\n=== EXCEPTION ===\n");
+    k_print("Type: ");
+    k_print(exception_msgs[regs->int_no]);
+    k_new_line();
+
+    k_print("INT NO: "); k_print_hex(regs->int_no); k_new_line();
+    k_print("ERR CODE: "); k_print_hex(regs->err_code); k_new_line();
+
+    k_print("EIP: "); k_print_hex(regs->eip); k_new_line();
+    k_print("EFLAGS: "); k_print_hex(regs->eflags); k_new_line();
+
+    k_print("ESP: "); k_print_hex(regs->esp); k_new_line();
+    k_print("SS: "); k_print_hex(regs->ss); k_new_line();
+    k_print("CS: "); k_print_hex(regs->csm); k_new_line();
+
+    k_print("EAX: "); k_print_hex(regs->eax); k_new_line();
+    k_print("EBX: "); k_print_hex(regs->ebx); k_new_line();
+    k_print("ECX: "); k_print_hex(regs->ecx); k_new_line();
+    k_print("EDX: "); k_print_hex(regs->edx); k_new_line();
+
+    k_print("ESI: "); k_print_hex(regs->esi); k_new_line();
+    k_print("EDI: "); k_print_hex(regs->edi); k_new_line();
+    k_print("EBP: "); k_print_hex(regs->ebp); k_new_line();
+
+    k_print("=================\n");
+
+    for (;;);
+}
+
+    else if (regs->int_no >= 32 && regs->int_no < 47) {
         int irq = regs->int_no - 32;
 
         if (irq_routines[irq]) {
@@ -128,7 +153,10 @@ void isr_handler(struct interrupt_registers* regs) {
     }
 
     else if (regs->int_no == 128 || regs->int_no == 177) {
-        // syscall handling later
+        k_set_color(COLOR_LIGHT_BLUE, COLOR_BLACK); k_print("SYSCALL!"); k_set_color(COLOR_BRIGHT_WHITE, COLOR_BLACK);
+        k_new_line(); k_new_line();
+        syscall_handler(regs->eax, regs->ebx, regs->ecx, regs->edx);
+        return; 
     }
 }
 

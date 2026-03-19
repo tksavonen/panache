@@ -1,6 +1,6 @@
 ; panache/arch/i386/idt_flush.asm
 
-global idt_flush
+GLOBAL idt_flush
 idt_flush:
     MOV eax, [esp+4]
     LIDT [eax]
@@ -8,28 +8,25 @@ idt_flush:
     RET
 
 %macro ISR_NOERRCODE 1
-    global isr%1
-    isr%1:
-        CLI
-        PUSH LONG 0
-        PUSH LONG %1
-        JMP isr_common_stub
+GLOBAL isr%1
+isr%1:
+    PUSH LONG 0
+    PUSH LONG %1
+    JMP isr_common_stub
 %endmacro
 
 %macro ISR_ERRCODE 1
-    global isr%1
-    isr%1:
-        CLI
-        PUSH LONG %1
-        JMP isr_common_stub
+GLOBAL isr%1
+isr%1:
+    PUSH LONG %1
+    JMP isr_common_stub
 %endmacro
 
 %macro IRQ_STUB 1
-global irq%1
+GLOBAL irq%1
 irq%1:
-    CLI
-    PUSH DWORD 0        ; dummy error code
-    PUSH DWORD %1       ; interrupt number
+    PUSH DWORD 0       
+    PUSH DWORD %1       
     JMP isr_common_stub
 %endmacro
 
@@ -68,9 +65,6 @@ ISR_NOERRCODE 29
 ISR_NOERRCODE 30
 ISR_NOERRCODE 31
 
-ISR_NOERRCODE 128
-ISR_NOERRCODE 177
-
 IRQ_STUB 32
 IRQ_STUB 33
 IRQ_STUB 34
@@ -88,12 +82,12 @@ IRQ_STUB 45
 IRQ_STUB 46
 IRQ_STUB 47
 
-extern isr_handler
+GLOBAL isr_common_stub
+EXTERN isr_handler
 isr_common_stub:
     PUSHA
+
     MOV eax, ds
-    PUSH eax
-    MOV eax, cr2
     PUSH eax
     
     MOV ax, 0x10
@@ -105,19 +99,19 @@ isr_common_stub:
     PUSH esp
     CALL isr_handler
 
-    ADD esp, 8
+    ADD esp, 4
+
     POP ebx
-    MOV dx, bx
+    MOV ds, bx
     MOV es, bx
     MOV fs, bx
     MOV gs, bx
 
     POPA
     ADD esp, 8
-    STI
     IRET
 
-global isr_stub_table
+GLOBAL isr_stub_table
 isr_stub_table:
     %assign i 0
     %rep 32
@@ -125,7 +119,7 @@ isr_stub_table:
     %assign i i+1
     %endrep
 
-global irq_stub_table
+GLOBAL irq_stub_table
 irq_stub_table:
     %assign i 32
     %rep 16

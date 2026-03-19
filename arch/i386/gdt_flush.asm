@@ -1,6 +1,6 @@
 ; panache/arch/i386/gdt_flush.asm
 
-global gdt_flush
+GLOBAL gdt_flush
 gdt_flush:
     MOV eax, [esp+4]
     LGDT [eax]
@@ -15,8 +15,8 @@ gdt_flush:
 .flush:
     RET
 
-global tss_flush
+GLOBAL tss_flush
 tss_flush:
-    MOV ax, 0x2B
+    MOV ax, 0x28
     LTR ax
     RET

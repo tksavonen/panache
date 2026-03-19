@@ -22,13 +22,15 @@
 #define COLOR_YELLOW			14
 #define COLOR_BRIGHT_WHITE		15	
 
-#define SCREEN_WIDTH			80
-#define SCREEN_HEIGHT			25
+#define VGA_SCREEN_WIDTH			80
+#define VGA_SCREEN_HEIGHT			25
 
 void k_print(const char* s, ...);
 void k_scroll_up();
 void k_new_line();
 void k_reset();
 void k_set_color(uint8_t fg, uint8_t bg);
+void itox(uint32_t val, char* buf);
+void k_print_hex(uint32_t val);
 
 #endif

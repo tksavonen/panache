@@ -22,15 +22,15 @@ void k_reset() {
 	line = 0; column = 0;
 	current_color = def_color;
 
-	for (uint16_t y = 0; y < SCREEN_HEIGHT; y++) {
-		for (uint16_t x = 0; x < SCREEN_WIDTH; x++) {
-			vga[y * SCREEN_WIDTH + x] = ' ' | current_color;
+	for (uint16_t y = 0; y < VGA_SCREEN_HEIGHT; y++) {
+		for (uint16_t x = 0; x < VGA_SCREEN_WIDTH; x++) {
+			vga[y * VGA_SCREEN_WIDTH + x] = ' ' | current_color;
 		}
 	}
 }
 
 void k_new_line() {
-	if (line < SCREEN_HEIGHT - 1) {
+	if (line < VGA_SCREEN_HEIGHT - 1) {
 		line++; column = 0;
 	}
 	else {
@@ -40,14 +40,14 @@ void k_new_line() {
 }
 
 void k_scroll_up() {
-	for (uint16_t y = 1; y < SCREEN_HEIGHT; y++) {
-		for (uint16_t x = 0; x < SCREEN_WIDTH; x++) {
-			vga[(y - 1) * SCREEN_WIDTH + x] = vga[y * SCREEN_WIDTH + x];
+	for (uint16_t y = 1; y < VGA_SCREEN_HEIGHT; y++) {
+		for (uint16_t x = 0; x < VGA_SCREEN_WIDTH; x++) {
+			vga[(y - 1) * VGA_SCREEN_WIDTH + x] = vga[y * VGA_SCREEN_WIDTH + x];
 		}
 	}
 
-	for (uint16_t x = 0; x < SCREEN_WIDTH; x++) {
-		vga[(SCREEN_HEIGHT - 1) * SCREEN_WIDTH + x] = ' ' | current_color;
+	for (uint16_t x = 0; x < VGA_SCREEN_WIDTH; x++) {
+		vga[(VGA_SCREEN_HEIGHT - 1) * VGA_SCREEN_WIDTH + x] = ' ' | current_color;
 	}
 }
 
@@ -81,7 +81,7 @@ void k_print(const char* s, ...) {
                 k_print(str);
             }
             else {
-                vga[line * SCREEN_WIDTH + (column++)] = *s | current_color;
+                vga[line * VGA_SCREEN_WIDTH + (column++)] = *s | current_color;
             }
         }
         else {
@@ -91,12 +91,12 @@ void k_print(const char* s, ...) {
                 case '\t': {
                     uint16_t tablen = 4 - (column % 4);
                     while (tablen--) {
-                        vga[line * SCREEN_WIDTH + (column++)] = ' ' | current_color;
+                        vga[line * VGA_SCREEN_WIDTH + (column++)] = ' ' | current_color;
                     }
                 } break;
                 default:
-                    if (column == SCREEN_WIDTH) k_new_line();
-                    vga[line * SCREEN_WIDTH + (column++)] = *s | current_color;
+                    if (column == VGA_SCREEN_WIDTH) k_new_line();
+                    vga[line * VGA_SCREEN_WIDTH + (column++)] = *s | current_color;
                     break;
             }
         }
@@ -109,4 +109,22 @@ void k_print(const char* s, ...) {
 
 void k_set_color(uint8_t fg, uint8_t bg) {
 	current_color = (fg << 8) | (bg << 12);
+}
+
+// convert integer to hex string
+void itox(uint32_t val, char* buf) {
+    const char* hex = "0123456789ABCDEF";
+    buf[0] = '0';
+    buf[1] = 'x';
+    for (int i = 0; i < 8; i++) {
+        buf[2 + i] = hex[(val >> (28 - i * 4)) & 0xF];
+    }
+    buf[10] = 0;
+}
+
+// prints a 32-bit value in hex
+void k_print_hex(uint32_t val) {
+    char buf[11];   // "0x" + 8 hex digits + null terminator
+    itox(val, buf);
+    k_print(buf);   // use your existing k_print
 }
