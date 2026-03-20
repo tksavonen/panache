@@ -2,8 +2,11 @@
 
 #include <gdt.h>
 #include <util.h>
+#include <stdint.h>
 
-extern void gdt_flush(addr_t);
+typedef uint32_t addr_t;
+
+extern void gdt_flush(void* ptr);
 extern void tss_flush();
 
 struct gdt_entry_struct gdt_entries[6];

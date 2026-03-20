@@ -55,7 +55,7 @@ void init_idt() {
     set_idt_gate(128, (uint32_t)isr128, 0x08, 0xEE);
     set_idt_gate(177, (uint32_t)isr177, 0x08, 0xEE);
 
-    idt_flush((uint32_t)&idt_ptr);
+    idt_flush((uint32_t*)&idt_ptr);
 }
 
 void set_idt_gate(uint8_t num, uint32_t base, uint16_t sel, uint8_t flags) {

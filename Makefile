@@ -1,5 +1,3 @@
-# MAKEFILE for panacheOS
-
 CC := i686-elf-gcc
 AS := nasm
 
@@ -19,6 +17,18 @@ OBJS := $(patsubst %.c,$(BUILD_DIR)/%.o,$(C_SRCS)) \
 
 KERNEL := kernel.bin
 
+UNAME_S := $(shell uname)
+
+# Default QEMU command
+QEMU := qemu-system-i386
+RUN_CMD := $(QEMU) -kernel $(KERNEL) -serial stdio
+
+# OS‑specific behavior
+ifeq ($(UNAME_S),Linux)
+    USE_GRUB := yes
+    RUN_CMD := $(QEMU) -cdrom panacheOS.iso -serial stdio
+endif
+
 all: $(KERNEL)
 
 $(KERNEL): $(OBJS)
@@ -32,13 +42,19 @@ $(BUILD_DIR)/%.o: %.asm
 	mkdir -p $(dir $@)
 	$(AS) -f elf32 $< -o $@
 
+# ISO target — only works on Linux
+ifeq ($(USE_GRUB),yes)
 iso: $(KERNEL)
 	mkdir -p $(ISO_DIR)/boot
 	cp $(KERNEL) $(ISO_DIR)/boot/kernel.bin
 	grub-mkrescue -o panacheOS.iso $(ISO_DIR)
+else
+iso:
+	@echo "Skipping ISO creation: GRUB not available on this OS."
+endif
 
-run: iso
-	qemu-system-i386 -cdrom panacheOS.iso
+run: $(KERNEL)
+	$(RUN_CMD)
 
 clean:
 	rm -rf $(BUILD_DIR) $(KERNEL) panacheOS.iso
