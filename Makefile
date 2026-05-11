@@ -19,14 +19,12 @@ KERNEL := kernel.bin
 
 UNAME_S := $(shell uname)
 
-# Default QEMU command
 QEMU := qemu-system-i386
 RUN_CMD := $(QEMU) -kernel $(KERNEL) -serial stdio
 
-# OS‑specific behavior
 ifeq ($(UNAME_S),Linux)
     USE_GRUB := yes
-    RUN_CMD := $(QEMU) -cdrom panacheOS.iso -serial stdio
+    RUN_CMD := $(QEMU) -cdrom panacheOS.iso -serial stdio -vga std
 endif
 
 all: $(KERNEL)
