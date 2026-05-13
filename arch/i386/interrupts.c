@@ -21,13 +21,15 @@ extern void idt_flush(uint32_t* idt_ptr);
 extern void (*isr_stub_table[32])(void);
 extern void (*irq_stub_table[16])(void);
 
+extern uint32_t kernel_stack_top;
+
 typedef void (*irq_handler_t)(struct interrupt_registers* regs);
 
 void init_idt() {
     idt_ptr.limit = sizeof(struct idt_entry_struct) * 256 - 1;
     idt_ptr.base = (uint32_t) &idt_entries;
 
-    memset(&idt_entries, 0, sizeof(struct idt_entry_struct) * 256);
+    memset(&idt_entries, 0, sizeof(idt_entries)); 
 
     out_port_b(0x20, 0x11);
     out_port_b(0xA0, 0x11);
@@ -45,15 +47,15 @@ void init_idt() {
     out_port_b(0xA1, 0x0);  
     
     for (int i = 0; i < 32; i++) {
-        set_idt_gate(i, (uint32_t)isr_stub_table[i], 0x08, 0x8E);
+        set_idt_gate(i, (uint32_t)isr_stub_table[i], 0x08, 0xEF);
     }
 
     for (int i = 0; i < 16; i++) {
-        set_idt_gate(32 + i, (uint32_t)irq_stub_table[i], 0x08, 0x8E);
+        set_idt_gate(32 + i, (uint32_t)irq_stub_table[i], 0x08, 0xEF);
     }
 
-    set_idt_gate(128, (uint32_t)isr128, 0x08, 0xEE);
-    set_idt_gate(177, (uint32_t)isr177, 0x08, 0xEE);
+    set_idt_gate(128, (uint32_t)isr128, 0x08, 0xEF);
+    set_idt_gate(177, (uint32_t)isr177, 0x08, 0xEF);
 
     idt_flush((uint32_t*)&idt_ptr);
 }
@@ -70,6 +72,20 @@ static irq_handler_t irq_routines[16] = {
     0,0,0,0,0,0,0,0,
     0,0,0,0,0,0,0,0
 };
+
+void irq_handler(struct interrupt_registers *regs) {
+    uint32_t esp;
+    asm volatile("mov %%esp, %0" : "=r"(esp));
+    
+    int irq = regs->int_no - 32;  
+
+    if (irq >= 0 && irq < 16 && irq_routines[irq]) {
+        irq_routines[irq](regs);
+    }
+
+    if (irq >= 8) out_port_b(0xA0, 0x20);  
+    out_port_b(0x20, 0x20);      
+}
 
 const char *exception_msgs[] = {
     "Division by Zero",
@@ -107,6 +123,11 @@ const char *exception_msgs[] = {
 };
 
 void isr_handler(struct interrupt_registers* regs) {
+    if (regs->int_no == 128) {
+        syscall_handler(regs->eax, regs->ebx, regs->ecx, regs->edx);
+        return;
+    }
+
     if (regs->int_no < 32) {
     k_set_color(COLOR_RED, COLOR_BLACK);
 

@@ -1,0 +1,11 @@
+write_tss esp0=0x001260E0
+
+after write_tss:0x001260E0
+
+after gdt_flush:0x001260E0
+
+after tss_flush:0x001260E0
+
+FOUND FB
+font magic=0x10030436
+reached

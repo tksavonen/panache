@@ -31,4 +31,12 @@ SECTIONS
         *(.bss*)
         __bss_end = .;
     }
+
+    . = ALIGN(16);
+    .stack :
+    {
+        __stack_bottom = .;
+        . += 65536;         /* 64KB kernel stack */
+        __stack_top = .;
+    }
 }

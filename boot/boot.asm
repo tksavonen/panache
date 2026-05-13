@@ -11,10 +11,10 @@ MB2_ARCH_I386  	equ 0
 MB2_HEADER_LEN 	equ mb2_header_end - mb2_header_start
 
 mb2_header_start:
-    DD MB2_MAGIC              ; magic
-    DD MB2_ARCH_I386          ; arch
-    DD MB2_HEADER_LEN         ; header length
-    DD -(MB2_MAGIC + MB2_ARCH_I386 + MB2_HEADER_LEN)                      ; checksum 
+    DD MB2_MAGIC                                        ; magic
+    DD MB2_ARCH_I386                                    ; arch
+    DD MB2_HEADER_LEN                                   ; header length
+    DD -(MB2_MAGIC + MB2_ARCH_I386 + MB2_HEADER_LEN)    ; checksum 
 
 mb2_tag_framebuffer:
     DW 5                      
@@ -25,6 +25,7 @@ mb2_tag_framebuffer:
     DD 32                    
 mb2_tag_framebuffer_end:
 
+ALIGN 8
 mb2_tag_end:
     DW 0                      
     DW 0                      
@@ -32,14 +33,17 @@ mb2_tag_end:
 
 mb2_header_end:
 
-section .multiboot2
-ALIGN 4
-
 section .text
 GLOBAL _start
 EXTERN kernel_main
+EXTERN __stack_top
+EXTERN __stack_bottom
+EXTERN kernel_stack_top
 
 _start:
+    MOV esi, eax
+    MOV ebp, ebx
+
 	MOV edi, __bss_start
 	MOV ecx, __bss_end
 	SUB ecx, edi
@@ -47,8 +51,8 @@ _start:
 	SHR ecx, 2
 	REP stosd
 	
-	PUSH ebx
-	PUSH eax
+	PUSH ebp
+	PUSH esi
     CALL kernel_main
 
 .hang:

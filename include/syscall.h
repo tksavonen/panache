@@ -6,9 +6,32 @@
 #include <stdint.h>
 
 // Syscall numbers
-#define SYS_PRINT           1
-#define SYS_DRAW_PIXEL      2
-#define SYS_DRAW_RECT       3
-#define SYS_CLEAR_SCREEN    4
+
+#define SYS_PRINT                   1
+#define SYS_PUT_SERIAL_CHAR         2
+#define SYS_PUT_PIXEL               3
+#define SYS_FILL_RECT               4
+#define SYS_CLEAR_SCREEN            5
+#define SYS_DRAW_STRING             6
+
+// User-mode API
+
+void syscall_putchar(char c);
+void syscall_put_pixel(uint32_t x, uint32_t y, uint32_t color);
+void syscall_fill_rect(uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t color);
+void syscall_clear(uint32_t color);
+void syscall_draw_string(uint32_t x, uint32_t y, const char *str, uint32_t fg, uint32_t bg);
+
+typedef struct {
+    uint32_t x, y, w, h, color;
+} rect_args_t;
+
+typedef struct {
+    uint32_t x;
+    uint32_t y;
+    const char *str;
+    uint32_t fg;
+    uint32_t bg;
+} draw_string_args_t;
 
 #endif

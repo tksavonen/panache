@@ -16,8 +16,10 @@ enter_user_mode:
 
     PUSH 0x23                
     PUSH eax
+
     pushf                    
-    PUSH 0x1B                
+    PUSH 0x1B    
+                
     PUSH user_mode_entry 
     IRET
 

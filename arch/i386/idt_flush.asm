@@ -26,8 +26,8 @@ isr%1:
 GLOBAL irq%1
 irq%1:
     PUSH DWORD 0       
-    PUSH DWORD %1       
-    JMP isr_common_stub
+    PUSH DWORD (%1+32)      
+    JMP irq_common_stub
 %endmacro
 
 ISR_NOERRCODE 0
@@ -65,51 +65,51 @@ ISR_NOERRCODE 29
 ISR_NOERRCODE 30
 ISR_NOERRCODE 31
 
-IRQ_STUB 32
-IRQ_STUB 33
-IRQ_STUB 34
-IRQ_STUB 35
-IRQ_STUB 36
-IRQ_STUB 37
-IRQ_STUB 38
-IRQ_STUB 39
-IRQ_STUB 40
-IRQ_STUB 41
-IRQ_STUB 42
-IRQ_STUB 43
-IRQ_STUB 44
-IRQ_STUB 45
-IRQ_STUB 46
-IRQ_STUB 47
+IRQ_STUB 0
+IRQ_STUB 1
+IRQ_STUB 2
+IRQ_STUB 3
+IRQ_STUB 4
+IRQ_STUB 5
+IRQ_STUB 6
+IRQ_STUB 7
+IRQ_STUB 8
+IRQ_STUB 9
+IRQ_STUB 10
+IRQ_STUB 11
+IRQ_STUB 12
+IRQ_STUB 13
+IRQ_STUB 14
+IRQ_STUB 15
 
 GLOBAL isr_common_stub
 EXTERN isr_handler
 isr_common_stub:
-    PUSHA
+    pusha
 
-    MOV eax, ds
-    PUSH eax
-    
-    MOV ax, 0x10
-    MOV ds, ax
-    MOV es, ax
-    MOV fs, ax
-    MOV gs, ax
+    push ds
+    push es
+    push fs
+    push gs
 
-    PUSH esp
-    CALL isr_handler
+    mov ax, 0x10
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
 
-    ADD esp, 4
+    push esp              
+    call isr_handler
+    add esp, 4
 
-    POP ebx
-    MOV ds, bx
-    MOV es, bx
-    MOV fs, bx
-    MOV gs, bx
+    pop gs
+    pop fs
+    pop es
+    pop ds
 
-    POPA
-    ADD esp, 8
-    IRET
+    popa
+    add esp, 8            
+    iret
 
 GLOBAL isr_stub_table
 isr_stub_table:
@@ -119,9 +119,38 @@ isr_stub_table:
     %assign i i+1
     %endrep
 
+GLOBAL irq_common_stub
+EXTERN irq_handler
+irq_common_stub:
+    pusha
+
+    push gs
+    push fs
+    push es
+    push ds
+
+    mov ax, 0x10
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+
+    push esp
+    call irq_handler     
+    add esp, 4
+
+    pop ds
+    pop es
+    pop fs
+    pop gs
+
+    popa
+    add esp, 8
+    iret
+
 GLOBAL irq_stub_table
 irq_stub_table:
-    %assign i 32
+    %assign i 0
     %rep 16
         dd irq%+i
     %assign i i+1
