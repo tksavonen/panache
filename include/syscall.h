@@ -7,12 +7,14 @@
 
 // Syscall numbers
 
-#define SYS_PRINT                   1
-#define SYS_PUT_SERIAL_CHAR         2
-#define SYS_PUT_PIXEL               3
-#define SYS_FILL_RECT               4
-#define SYS_CLEAR_SCREEN            5
-#define SYS_DRAW_STRING             6
+#define SYS_PRINT               1
+#define SYS_PUT_SERIAL_CHAR     2
+#define SYS_PUT_PIXEL           3
+#define SYS_FILL_RECT           4
+#define SYS_CLEAR_SCREEN        5
+#define SYS_DRAW_STRING         6
+#define SYS_HAS_KEY             7
+#define SYS_GET_KEY             8
 
 // User-mode API
 

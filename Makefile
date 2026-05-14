@@ -1,11 +1,11 @@
 CC := i686-elf-gcc
 AS := nasm
 
-SRC_DIRS := kernel drivers arch/i386 usr
+SRC_DIRS := kernel drivers arch/i386 usr memory
 BUILD_DIR := build
 ISO_DIR := iso
 
-CFLAGS := -ffreestanding -O2 -Wall -Wextra -Ikernel -Idrivers -Iarch -Iusr -Iinclude
+CFLAGS := -ffreestanding -O2 -Wall -Wextra -Ikernel -Idrivers -Iarch -Iusr -Imemory -Iinclude
 CFLAGS += -std=gnu99
 LDFLAGS := -T linker.ld -ffreestanding -O2 -nostdlib
 

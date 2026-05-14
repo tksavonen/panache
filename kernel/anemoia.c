@@ -9,7 +9,10 @@
 #include <mb.h>
 #include <util.h>
 #include <font.h>
+#include <keyboard.h>
+#include <paging.h>
 #include <video/framebuffer.h>
+
 #include <stdint.h>
 
 #define SYS_PRINT 1
@@ -46,7 +49,7 @@ static void parse_multiboot2(uint32_t mb_info_addr) {
     }
 }
 
-void syscall_handler(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
+uint32_t syscall_handler(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
     switch (eax) {
         case SYS_PUT_SERIAL_CHAR:
             serial_write((char)ebx);
@@ -67,6 +70,10 @@ void syscall_handler(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
             fb_draw_string(args->x, args->y, args->str, args->fg, args->bg);
             break;
         }
+        case SYS_HAS_KEY:
+            return keyboard_haskey();  
+        case SYS_GET_KEY:
+            return keyboard_getchar(); 
         default:
             debug_serial_str("Unrecognized syscall\n");
             break;
@@ -77,16 +84,31 @@ void debug_marker(uint32_t id) {
     serial_write('0' + (id & 0xF));
 }
 
+extern uint8_t __bss_end;
+
 void kernel_main(uint32_t mb_magic, uint32_t mb_info_addr) {
     debug_serial_init();
+    debug_serial_str("serial init\n");
+
+    init_paging();  
+    paging_enable();
 
     init_gdt();
+    debug_serial_str("gdt init\n");
     init_idt();
+    debug_serial_str("idt init\n");
+
+    //debug_serial_str("paging init\n");
 
     parse_multiboot2(mb_info_addr);
+    debug_serial_str("multiboot2 init\n\n");
 
     font_init();
+    //debug_serial_str("font init\n\n");
+    keyboard_init();
+    //debug_serial_str("keyboard init\n\n");
 
+    //debug_serial_str("entering user mode ...\n\n");
     enter_user_mode();
-    __builtin_unreachable();
 }
+

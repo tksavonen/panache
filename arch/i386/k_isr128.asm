@@ -17,5 +17,7 @@ isr128:
     CALL syscall_handler
 
     ADD esp, 16
+    MOV [esp+28], eax
+
     POPA
     IRET

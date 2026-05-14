@@ -3,15 +3,20 @@
 #include <font.h>
 #include <video/framebuffer.h>
 
+__attribute__((section(".font")))
 extern unsigned char Uni2_Terminus12x6_psf[];
 extern unsigned int Uni2_Terminus12x6_psf_len;
+extern unsigned char Uni2_Terminus28x14_psf[];
+extern unsigned int Uni2_Terminus28x14_psf_len;
+extern unsigned char Uni2_Terminus16_psf[];
+extern unsigned int Uni2_Terminus16_psf_len;
 
 static psf2_header_t *font_header;
 static uint8_t *font_bitmaps;
 
 void font_init(void) {
-    font_header  = (psf2_header_t *)Uni2_Terminus12x6_psf;
-    font_bitmaps = Uni2_Terminus12x6_psf + font_header->header_size;
+    font_header  = (psf2_header_t *)Uni2_Terminus28x14_psf;
+    font_bitmaps = Uni2_Terminus28x14_psf + font_header->header_size;
 }
 
 void fb_draw_char(uint32_t x, uint32_t y, char c, uint32_t fg, uint32_t bg) {

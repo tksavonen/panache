@@ -5,24 +5,19 @@ SECTIONS
     . = 1M;
 
     .multiboot2 :
-    {
-        KEEP(*(.multiboot2))
-    }
+    { KEEP(*(.multiboot2)) }
 
     .text :
-    {
-        *(.text*)
-    }
+    { *(.text*) }
 
     .data :
-    {
-        *(.data*)
-    }
+    { *(.data*) }
 
     .rodata : 
-    {
-        *(.rodata*)
-    }
+    { *(.rodata*) }
+
+    .font :
+    { *(.font*) }
 
     .bss :
     {

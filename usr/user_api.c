@@ -48,3 +48,25 @@ void syscall_draw_string(uint32_t x, uint32_t y, const char *str, uint32_t fg, u
         : "memory"
     );
 }
+
+uint8_t syscall_haskey(void) {
+    uint8_t result;
+    asm volatile(
+        "int $0x80"
+        : "=a"(result)
+        : "a"(SYS_HAS_KEY)
+        : "memory"
+    );
+    return result;
+}
+
+char syscall_getkey(void) {
+    char result;
+    asm volatile(
+        "int $0x80"
+        : "=a"(result)
+        : "a"(SYS_GET_KEY)
+        : "memory"
+    );
+    return result;
+}

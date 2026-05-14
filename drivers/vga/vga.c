@@ -2,6 +2,7 @@
 
 #include <vga.h>
 #include <util.h>
+
 #include <stdarg.h>
 
 static uint16_t column = 0;

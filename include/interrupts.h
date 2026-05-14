@@ -4,6 +4,7 @@
 #define IDT_H
 
 #include <util.h>
+
 #include <stdint.h>
 
 #define PIT_CHANNEL0    0x40
@@ -35,9 +36,11 @@ uint64_t k_uptime_seconds();
 uint64_t k_uptime_millis();
 uint64_t k_uptime_ticks();
 
+typedef void (*irq_handler_t)(struct interrupt_registers* regs);
 void init_idt();
 void set_idt_gate(uint8_t num, uint32_t base, uint16_t sel, uint8_t flags);
 void isr_handler(struct interrupt_registers* regs);
+void irq_install_handler(int irq, irq_handler_t handler);
 extern void isr128(void);
 extern void isr177(void);
 void init_time();
