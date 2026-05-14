@@ -15,6 +15,20 @@ struct mb2_tag {
     uint32_t size;
 };
 
+struct mb2_tag_mmap {
+    uint32_t type;
+    uint32_t size;
+    uint32_t entry_size;
+    uint32_t entry_version;
+};
+
+struct mb2_mmap_entry {
+    uint64_t base_addr;
+    uint64_t length;
+    uint32_t type;      // 1 = available, anything else = reserved
+    uint32_t reserved;
+} __attribute__((packed));
+
 struct mb2_tag_framebuffer {
     uint32_t type;
     uint32_t size;

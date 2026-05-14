@@ -11,6 +11,7 @@
 #include <font.h>
 #include <keyboard.h>
 #include <paging.h>
+#include <pmm.h>
 #include <video/framebuffer.h>
 
 #include <stdint.h>
@@ -28,12 +29,24 @@ extern void enter_user_mode(void);
 static void parse_multiboot2(uint32_t mb_info_addr) {
     struct mb2_info *info = (struct mb2_info *)mb_info_addr;
     uint8_t *ptr = (uint8_t *)info + 8;
+    uint8_t *end = (uint8_t *)info + info->total_size;
 
-    while (1) {
+    while (ptr < end) {
         struct mb2_tag *tag = (struct mb2_tag *)ptr;
 
         if (tag->type == 0) 
             break; 
+
+        if (tag->type == 6) {
+            struct mb2_tag_mmap *mmap = (struct mb2_tag_mmap *)tag;
+            uint8_t *entry = (uint8_t *)mmap + 16;  
+            uint8_t *end   = (uint8_t *)mmap + mmap->size;
+
+            while (entry < end) {
+                struct mb2_mmap_entry *e = (struct mb2_mmap_entry *)entry;
+                entry += mmap->entry_size;
+            }
+        }
         
         if (tag->type == 8) {
             struct mb2_tag_framebuffer *fb = (struct mb2_tag_framebuffer *)tag;
@@ -90,25 +103,50 @@ void kernel_main(uint32_t mb_magic, uint32_t mb_info_addr) {
     debug_serial_init();
     debug_serial_str("serial init\n");
 
-    init_paging();  
-    paging_enable();
+    parse_multiboot2(mb_info_addr);
+    debug_serial_str("multiboot2 init\n");
 
     init_gdt();
     debug_serial_str("gdt init\n");
     init_idt();
     debug_serial_str("idt init\n");
 
-    //debug_serial_str("paging init\n");
+    init_paging();  
+    paging_enable();
+    pmm_init(0x00100000, 0x07FE0000);  // 1MB - 126MB
+    debug_serial_str("paging init\n");
+    // mark kernel itself as used so we don't allocate over it
+    extern uint8_t __bss_end; 
+    uint32_t kernel_end = (uint32_t)&__bss_end;
+    for (uint32_t addr = 0x00100000; addr < 0x00500000; addr += PMM_PAGE_SIZE) {
+        pmm_mark_used(addr);
+    }
 
-    parse_multiboot2(mb_info_addr);
-    debug_serial_str("multiboot2 init\n\n");
+    debug_serial_str("testing pm alloc ...\n");
+    uint32_t frame1 = pmm_alloc();
+    uint32_t frame2 = pmm_alloc();
+    uint32_t frame3 = pmm_alloc();
+    debug_serial_str("alloc1=");
+    debug_serial_hex(frame1);
+    debug_serial_str("\nalloc2=");
+    debug_serial_hex(frame2);
+    debug_serial_str("\nalloc3=");
+    debug_serial_hex(frame3);
+    debug_serial_str("\n");
+
+    pmm_free(frame2);
+    uint32_t frame4 = pmm_alloc();  // should reuse frame2's address
+    debug_serial_str("after free+alloc=");
+    debug_serial_hex(frame4);
+    debug_serial_str("\n");
+
+    debug_serial_str("free frames=");
+    debug_serial_hex(pmm_free_frames());
+    debug_serial_str("\npm alloc OK\n");
 
     font_init();
-    //debug_serial_str("font init\n\n");
     keyboard_init();
-    //debug_serial_str("keyboard init\n\n");
 
-    //debug_serial_str("entering user mode ...\n\n");
     enter_user_mode();
 }
 

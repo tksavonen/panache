@@ -3,7 +3,7 @@
 EXTERN __bss_start
 EXTERN __bss_end
 
-section .multiboot
+section .multiboot2
 ALIGN 8
 
 MB2_MAGIC      	equ 0xE85250D6
