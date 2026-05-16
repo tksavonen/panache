@@ -4,7 +4,7 @@ A 32-bit x86 hobby OS written in C and x86 Assembly.
 
 *A work in progress!!!*
 
-<img width="1008" height="760" alt="image" src="https://github.com/user-attachments/assets/c7de3b82-8014-429a-9060-3c4ca8b05950" />
+<img width="1011" height="759" alt="image" src="https://github.com/user-attachments/assets/80e43411-44ec-4cb4-950d-766915d1e446" />
 
 ## What is it?
 panacheOS is a small operating system built from scratch for the x86 architecture.
