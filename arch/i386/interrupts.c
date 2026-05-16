@@ -4,6 +4,7 @@
 #include <interrupts.h>
 #include <util.h>
 #include <vga.h>
+#include <scheduler.h>
 #include <serial.h>
 
 #include <stdint.h>
@@ -76,17 +77,16 @@ static irq_handler_t irq_routines[16] = {
 };
 
 void irq_handler(struct interrupt_registers *regs) {
-    uint32_t esp;
-    asm volatile("mov %%esp, %0" : "=r"(esp));
-    
-    int irq = regs->int_no - 32;  
-
-    if (irq >= 0 && irq < 16 && irq_routines[irq]) {
-        irq_routines[irq](regs);
-    }
+    int irq = regs->int_no - 32;
 
     if (irq >= 8) out_port_b(0xA0, 0x20);  
-    out_port_b(0x20, 0x20);      
+        out_port_b(0x20, 0x20); 
+
+    if (irq == 0)
+        scheduler_tick(regs);
+
+    if (irq >= 0 && irq < 16 && irq_routines[irq]) 
+        irq_routines[irq](regs);     
 }
 
 const char *exception_msgs[] = {

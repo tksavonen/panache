@@ -27,5 +27,6 @@ extern page_directory_t *kernel_page_directory;
 
 void init_paging();
 void paging_enable(void);
+void paging_map(uint32_t virt, uint32_t phys, uint32_t flags);
 
 #endif

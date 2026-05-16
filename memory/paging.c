@@ -42,3 +42,28 @@ void paging_enable(void) {
         : "eax"
     );
 }
+
+void paging_map(uint32_t virt, uint32_t phys, uint32_t flags) {
+    debug_serial_str("map virt=");
+    debug_serial_hex(virt);
+    debug_serial_str(" phys=");
+    debug_serial_hex(phys);
+    debug_serial_str("\n");
+    
+    uint32_t dir_index   = virt >> 22;
+    uint32_t table_index = (virt >> 12) & 0x3FF;
+
+    if (!(page_directory[dir_index] & PAGE_PRESENT)) {
+        uint32_t new_table = pmm_alloc();
+        page_directory[dir_index] = new_table | PAGE_PRESENT | PAGE_RW | PAGE_USER;
+        // zero the new page table
+        uint32_t *table = (uint32_t *)new_table;
+        for (int i = 0; i < 1024; i++) table[i] = 0;
+    }
+
+    uint32_t *table = (uint32_t *)(page_directory[dir_index] & ~0xFFF);
+    table[table_index] = phys | flags;
+
+    // flush TLB for this address
+    asm volatile("invlpg (%0)" : : "r"(virt) : "memory");
+}

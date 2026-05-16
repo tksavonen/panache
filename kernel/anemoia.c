@@ -12,6 +12,9 @@
 #include <keyboard.h>
 #include <paging.h>
 #include <pmm.h>
+#include <elf_loader.h>
+#include <process.h>
+#include <scheduler.h>
 #include <video/framebuffer.h>
 
 #include <stdint.h>
@@ -111,6 +114,7 @@ void kernel_main(uint32_t mb_magic, uint32_t mb_info_addr) {
     init_idt();
     debug_serial_str("idt init\n");
 
+    // ------ MEMORY CHECKS ------ 
     init_paging();  
     paging_enable();
     pmm_init(0x00100000, 0x07FE0000);  // 1MB - 126MB
@@ -122,7 +126,7 @@ void kernel_main(uint32_t mb_magic, uint32_t mb_info_addr) {
         pmm_mark_used(addr);
     }
 
-    debug_serial_str("testing pm alloc ...\n");
+    debug_serial_str("\ntesting pm alloc ...\n\n");
     uint32_t frame1 = pmm_alloc();
     uint32_t frame2 = pmm_alloc();
     uint32_t frame3 = pmm_alloc();
@@ -135,18 +139,132 @@ void kernel_main(uint32_t mb_magic, uint32_t mb_info_addr) {
     debug_serial_str("\n");
 
     pmm_free(frame2);
-    uint32_t frame4 = pmm_alloc();  // should reuse frame2's address
+    uint32_t frame4 = pmm_alloc();  
     debug_serial_str("after free+alloc=");
     debug_serial_hex(frame4);
     debug_serial_str("\n");
 
     debug_serial_str("free frames=");
     debug_serial_hex(pmm_free_frames());
-    debug_serial_str("\npm alloc OK\n");
+    debug_serial_str("\npm alloc OK\n\n");
+
+    // allocate 1MB of heap (256 pages)
+    uint32_t heap_start_addr = 0x00600000;
+    uint32_t heap_size = 256 * 4096;  
+
+    for (uint32_t addr = heap_start_addr; 
+        addr < heap_start_addr + heap_size; 
+        addr += 4096) {
+        pmm_mark_used(addr);
+    }
+
+    kmalloc_init(heap_start_addr, heap_size);
+
+    debug_serial_str("testing kmalloc...\n");
+    uint32_t *a = kmalloc(16);
+    uint32_t *b = kmalloc(64);
+    uint32_t *c = kmalloc(256);
+
+    debug_serial_str("a="); debug_serial_hex((uint32_t)a);
+    debug_serial_str("\nb="); debug_serial_hex((uint32_t)b);
+    debug_serial_str("\nc="); debug_serial_hex((uint32_t)c);
+    *a = 0x12345678;
+    *b = 0xDEADBEEF;
+    debug_serial_str("\n*a="); debug_serial_hex(*a);
+    debug_serial_str("\n*b="); debug_serial_hex(*b);
+
+    kfree(b);
+    uint32_t *d = kmalloc(32); 
+    debug_serial_str("\nd="); debug_serial_hex((uint32_t)d);
+
+    kmalloc_dump();
+    debug_serial_str("kmalloc OK\n\n");
 
     font_init();
+    debug_serial_str("font init\n");
     keyboard_init();
+    debug_serial_str("keyboard init\n");
 
-    enter_user_mode();
+    // ------ EXE CHECKS ------ 
+    extern unsigned char test_program_elf[];
+    uint32_t entry = elf_load(test_program_elf);
+    debug_serial_str("elf entry point=");
+    debug_serial_hex(entry);
+    debug_serial_str("\n");
+
+    process_init();
+    scheduler_init();
+
+    debug_serial_str("\ntesting proc 1 ...\n");
+
+    uint32_t shell_kstack = pmm_alloc();
+    paging_map(shell_kstack, shell_kstack, PAGE_PRESENT | PAGE_RW);
+    uint32_t shell_ustack_phys = pmm_alloc();
+    uint32_t shell_ustack_virt = 0x00500000;
+    paging_map(shell_ustack_virt - 0x1000, shell_ustack_phys, 
+            PAGE_PRESENT | PAGE_RW| PAGE_USER);
+
+    uint32_t cr3;
+    asm volatile("mov %%cr3, %0" : "=r"(cr3));
+
+    extern void user_main(void);
+    process_t *shell = process_create(
+        "shell",
+        (uint32_t)user_main,    // entry point
+        cr3,                    // shares kernel page dir
+        shell_ustack_virt,      // user stack top
+        shell_kstack + 0x1000   // kernel stack top
+    );
+
+    current_pid = shell->pid;
+    shell->state = PROCESS_RUNNING;
+    debug_serial_str("test proc 1 OK\n\n");
+    debug_serial_str("testing proc 2 ...\n");
+
+    extern unsigned char blinky_elf[];
+    uint32_t blinky_entry = elf_load(blinky_elf);
+    debug_serial_str("blinky entry=");
+    debug_serial_hex(blinky_entry);
+    debug_serial_str("\n");
+
+    // verify the entry point is readable
+    uint8_t *ep = (uint8_t *)blinky_entry;
+    debug_serial_str("first byte at entry=");
+    debug_serial_hex(*ep);
+    debug_serial_str("\n");
+
+    uint32_t blinky_kstack_phys = pmm_alloc();
+    paging_map(blinky_kstack_phys, blinky_kstack_phys, PAGE_PRESENT | PAGE_RW);
+    uint32_t blinky_ustack_phys = pmm_alloc();
+    uint32_t blinky_ustack_virt = 0x00900000;  
+    paging_map(blinky_ustack_virt - 0x1000, blinky_ustack_phys, PAGE_PRESENT | PAGE_RW | PAGE_USER);
+
+    process_t *blinky = process_create("blinky", blinky_entry, cr3, blinky_ustack_virt,
+        blinky_kstack_phys + 0x1000);
+
+    debug_serial_str("proc 2 OK\n\n");
+
+    debug_serial_str("jumping to user mode ...\n");
+    debug_serial_str("starting scheduler ...\n");
+    asm volatile(
+        "mov $0x23, %%ax  \n"
+        "mov %%ax, %%ds   \n"
+        "mov %%ax, %%es   \n"
+        "mov %%ax, %%fs   \n"
+        "mov %%ax, %%gs   \n"
+        "push $0x23       \n"   
+        "push %1          \n"  
+        "pushf            \n"
+        "pop %%eax        \n"
+        "or $0x200, %%eax \n"   
+        "push %%eax       \n"   
+        "push $0x1b       \n"   
+        "push %0          \n"  
+        "iret             \n"
+        :
+        : "r"(shell->entry), "r"(shell->user_stack_top)
+        : "eax"
+    );
+     __builtin_unreachable();
 }
 
