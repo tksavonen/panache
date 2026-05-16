@@ -70,3 +70,12 @@ char syscall_getkey(void) {
     );
     return result;
 }
+
+void syscall_get_time(time_t *t) {
+    asm volatile(
+        "int $0x80"
+        :
+        : "a"(SYS_GET_TIME), "b"(t)
+        : "memory"
+    );
+}

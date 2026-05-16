@@ -1,0 +1,119 @@
+serial init
+FOUND FB
+multiboot2 init
+write_tss esp0=0x00239520
+
+after write_tss:0x00239520
+
+after gdt_flush:0x00239520
+
+after tss_flush:0x00239520
+
+gdt init
+idt init
+pmm_init start=0x00100000
+ end=0x07FE0000
+
+frame_start=0x00000100
+ total=0x00007EE0
+
+paging init
+
+testing pm alloc ...
+
+alloc1=0x00500000
+
+alloc2=0x00501000
+
+alloc3=0x00502000
+
+after free+alloc=0x00501000
+
+free frames=0x00007ADD
+
+pm alloc OK
+
+kmalloc: heap=0x00600000
+ size=0x00100000
+
+testing kmalloc...
+a=0x00600014
+
+b=0x00600038
+
+c=0x0060008C
+
+*a=0x12345678
+
+*b=0xDEADBEEF
+
+d=0x00600038
+=== heap dump ===
+block 0x00000000
+: addr=0x00600000
+ size=0x00000010
+ used=0x00000001
+
+block 0x00000001
+: addr=0x00600024
+ size=0x00000040
+ used=0x00000001
+
+block 0x00000002
+: addr=0x00600078
+ size=0x00000100
+ used=0x00000001
+
+block 0x00000003
+: addr=0x0060018C
+ size=0x000FFE60
+ used=0x00000000
+
+=================
+kmalloc OK
+
+font init
+keyboard init
+proc table init
+scheduler init
+
+testing proc 1 ...
+map virt=0x00503000
+ phys=0x00503000
+
+map virt=0x004FF000
+ phys=0x00504000
+
+process: created 'shell' pid=0x00000001
+
+test proc 1 OK
+
+testing proc 2 ...
+testing ELF ...
+
+elf: entry=0x00800000
+elf: phnum=0x00000002
+elf: segment vaddr=0x00800000
+ filesz=0x00000400
+ memsz=0x00000400
+map virt=0x00800000
+ phys=0x00505000
+
+elf: loaded OK
+
+blinky entry=0x00800000
+
+first byte at entry=0x00000055
+
+map virt=0x00506000
+ phys=0x00506000
+
+map virt=0x008FF000
+ phys=0x00507000
+
+process: created 'blinky' pid=0x00000002
+
+proc 2 OK
+
+jumping to user mode ...
+starting scheduler ...

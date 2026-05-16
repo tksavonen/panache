@@ -85,31 +85,31 @@ IRQ_STUB 15
 GLOBAL isr_common_stub
 EXTERN isr_handler
 isr_common_stub:
-    pusha
+    PUSHA
 
-    push ds
-    push es
-    push fs
-    push gs
+    PUSH ds
+    PUSH es
+    PUSH fs
+    PUSH gs
 
-    mov ax, 0x10
-    mov ds, ax
-    mov es, ax
-    mov fs, ax
-    mov gs, ax
+    MOV ax, 0x10
+    MOV ds, ax
+    MOV es, ax
+    MOV fs, ax
+    MOV gs, ax
 
-    push esp              
-    call isr_handler
-    add esp, 4
+    PUSH esp              
+    CALL isr_handler
+    ADD esp, 4
 
-    pop gs
-    pop fs
-    pop es
-    pop ds
+    POP gs
+    POP fs
+    POP es
+    POP ds
 
-    popa
-    add esp, 8            
-    iret
+    POPA
+    ADD esp, 8            
+    IRET
 
 GLOBAL isr_stub_table
 isr_stub_table:
@@ -122,31 +122,31 @@ isr_stub_table:
 GLOBAL irq_common_stub
 EXTERN irq_handler
 irq_common_stub:
-    pusha
+    PUSHA
 
-    push gs
-    push fs
-    push es
-    push ds
+    PUSH gs
+    PUSH fs
+    PUSH es
+    PUSH ds
 
-    mov ax, 0x10
-    mov ds, ax
-    mov es, ax
-    mov fs, ax
-    mov gs, ax
+    MOV ax, 0x10
+    MOV ds, ax
+    MOV es, ax
+    MOV fs, ax
+    MOV gs, ax
 
-    push esp
-    call irq_handler     
-    add esp, 4
+    PUSH esp
+    CALL irq_handler     
+    ADD esp, 4
 
-    pop ds
-    pop es
-    pop fs
-    pop gs
+    POP ds
+    POP es
+    POP fs
+    POP gs
 
-    popa
-    add esp, 8
-    iret
+    POPA
+    ADD esp, 8
+    IRET
 
 GLOBAL irq_stub_table
 irq_stub_table:

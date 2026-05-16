@@ -15,14 +15,9 @@
 #define SYS_DRAW_STRING         6
 #define SYS_HAS_KEY             7
 #define SYS_GET_KEY             8
+#define SYS_GET_TIME            9
 
 // User-mode API
-
-void syscall_putchar(char c);
-void syscall_put_pixel(uint32_t x, uint32_t y, uint32_t color);
-void syscall_fill_rect(uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t color);
-void syscall_clear(uint32_t color);
-void syscall_draw_string(uint32_t x, uint32_t y, const char *str, uint32_t fg, uint32_t bg);
 
 typedef struct {
     uint32_t x, y, w, h, color;
@@ -35,5 +30,21 @@ typedef struct {
     uint32_t fg;
     uint32_t bg;
 } draw_string_args_t;
+
+typedef struct {
+    unsigned char seconds;
+    unsigned char minutes;
+    unsigned char hours;
+    unsigned char day;
+    unsigned char month;
+    unsigned short year;
+} time_t;
+
+void syscall_putchar(char c);
+void syscall_put_pixel(uint32_t x, uint32_t y, uint32_t color);
+void syscall_fill_rect(uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t color);
+void syscall_clear(uint32_t color);
+void syscall_draw_string(uint32_t x, uint32_t y, const char *str, uint32_t fg, uint32_t bg);
+void syscall_get_time(time_t *t);
 
 #endif

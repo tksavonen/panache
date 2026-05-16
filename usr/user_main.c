@@ -6,7 +6,7 @@
 #include <serial.h>
 #include <font.h>
 #include <colors.h>
-#include <video/framebuffer.h>
+#include <framebuffer.h>
 
 #define SHELL_MAX_INPUT     128
 #define SHELL_X             10

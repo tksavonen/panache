@@ -1,4 +1,4 @@
-// // panache/include/colors.h
+// panache/include/colors.h
 
 #ifndef COLORS_H
 #define COLORS_H

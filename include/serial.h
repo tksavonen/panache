@@ -8,6 +8,9 @@
 void serial_init();
 void serial_write(char c);
 
+void outb(uint16_t port, uint8_t val);
+uint8_t inb(uint16_t port);
+
 void debug_serial_char(char c);
 void debug_serial_str(const char *s);
 void debug_serial_hex(uint32_t val);

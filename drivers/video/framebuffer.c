@@ -1,6 +1,6 @@
 // panache/drivers/video/framebuffer.c
 
-#include "framebuffer.h"
+#include <framebuffer.h>
 
 uint32_t *fb_addr   = 0;
 uint32_t fb_pitch   = 0;

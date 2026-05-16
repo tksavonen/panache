@@ -2,6 +2,7 @@
 // ----- THE PANACHEOS KERNEL -----
 
 #include <vga.h>
+#include <framebuffer.h>
 #include <gdt.h>
 #include <interrupts.h>
 #include <syscall.h>
@@ -15,7 +16,7 @@
 #include <elf_loader.h>
 #include <process.h>
 #include <scheduler.h>
-#include <video/framebuffer.h>
+#include <cmos.h>
 
 #include <stdint.h>
 
@@ -84,6 +85,18 @@ uint32_t syscall_handler(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx)
         case SYS_DRAW_STRING: {
             draw_string_args_t *args = (draw_string_args_t *)ebx;
             fb_draw_string(args->x, args->y, args->str, args->fg, args->bg);
+            break;
+        }
+        case SYS_GET_TIME: {
+            cmos_time_t t;
+            cmos_get_time(&t);
+            cmos_time_t *user_t = (cmos_time_t *)ebx;
+            user_t->seconds = t.seconds;
+            user_t->minutes = t.minutes;
+            user_t->hours   = t.hours;
+            user_t->day     = t.day;
+            user_t->month   = t.month;
+            user_t->year    = t.year;
             break;
         }
         case SYS_HAS_KEY:
@@ -186,12 +199,6 @@ void kernel_main(uint32_t mb_magic, uint32_t mb_info_addr) {
     debug_serial_str("keyboard init\n");
 
     // ------ EXE CHECKS ------ 
-    extern unsigned char test_program_elf[];
-    uint32_t entry = elf_load(test_program_elf);
-    debug_serial_str("elf entry point=");
-    debug_serial_hex(entry);
-    debug_serial_str("\n");
-
     process_init();
     scheduler_init();
 
@@ -267,4 +274,3 @@ void kernel_main(uint32_t mb_magic, uint32_t mb_info_addr) {
     );
      __builtin_unreachable();
 }
-
